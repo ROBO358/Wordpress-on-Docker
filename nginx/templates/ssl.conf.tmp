@@ -1,0 +1,51 @@
+server {
+    listen ${NGINX_WP_PORT};
+    listen [::]:${NGINX_WP_PORT};
+    server_name ${NGINX_WP_HOST};
+    charset utf-8;
+
+    # ログ
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    # SSLの設定
+    include /etc/nginx/certpath.txt;
+    # SSL証明書のpathを指定
+    ssl_certificate     /etc/nginx/letsencrypt/live/www.${NGINX_WP_HOST}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/letsencrypt/live/www.${NGINX_WP_HOST}/privkey.pem;
+
+    root /var/www/html;
+
+    # デフォルト
+    location / {
+        root /var/www/html;
+        index index.php;
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    # wp-config.phpへのアクセスを禁止
+    location ~* /wp-config.php {
+        deny all;
+    }
+
+    # .phpファイルの処理をphp-fpmに任せる
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(\.+)$;
+        fastcgi_index index.php;
+        fastcgi_pass wp_fastcgi_passes;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+    # キャッシュするファイルとその設定
+    location ~* .(html|css|js|jpe?g|png|gif|svg|mpg|flv|swf)$ {
+        expires 7d;
+    }
+
+    # エラーページ
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root html;
+    }
+}

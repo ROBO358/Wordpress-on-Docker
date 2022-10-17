@@ -1,0 +1,23 @@
+upstream wp_fastcgi_passes {
+    least_conn;
+
+    # 複数のphp-fpmサーバがあれば、以下を追加する。
+    server wordpress:9000;
+    # server second_wordpress:9000;
+}
+
+# http to https
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${NGINX_WP_HOST};
+
+    # certbotのアクセス先
+    location ^~ /.well-known {
+        root /var/www/html;
+    }
+
+    location / {
+       return 301 https://$host$request_uri;
+    }
+}

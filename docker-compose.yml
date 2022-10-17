@@ -1,0 +1,73 @@
+version: "3"
+services:
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    depends_on:
+      - nginx
+    env_file:
+      - ./nginx/conf/nginx.env
+    volumes:
+      - cert_done:/cert_done
+      - ./certbot/ssl.sh:/ssl.sh
+      - letsencrypt:/etc/letsencrypt
+      - letsencrypt_log:/var/log/letsencrypt
+      - wordpress:/var/www/html
+    entrypoint: ["sh", "/ssl.sh"]
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    depends_on:
+      - wordpress
+    env_file:
+      - ./nginx/conf/nginx.env
+    volumes:
+      - cert_done:/cert_done
+      - ./nginx/ssl.sh:/ssl.sh
+      - ./nginx/templates:/tmp
+      - ./nginx/conf/certpath.txt:/etc/nginx/certpath.txt
+      - letsencrypt:/etc/nginx/letsencrypt
+      - nginx_log:/var/log/nginx
+      - wordpress:/var/www/html
+    ports:
+      - 80:80
+      - 443:443
+    entrypoint: ["sh", "/ssl.sh"]
+
+  wordpress:
+    image: wordpress:php7.4-fpm
+    container_name: wordpress
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - wordpress:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: ${MARIADB_DATABASE}
+      WORDPRESS_DB_USER: ${MARIADB_USER}
+      WORDPRESS_DB_PASSWORD: ${MARIADB_PASSWORD}
+      TZ: Asia/Tokyo
+
+  db:
+    image: mariadb:latest
+    container_name: db
+    restart: always
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      TZ: Asia/Tokyo
+
+volumes:
+  cert_done:
+  letsencrypt:
+  letsencrypt_log:
+  nginx_log:
+  wordpress:
+  db:
