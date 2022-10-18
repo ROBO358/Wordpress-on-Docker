@@ -37,7 +37,7 @@ services:
     entrypoint: ["sh", "/ssl.sh"]
 
   wordpress:
-    image: wordpress:php7.4-fpm
+    image: wordpress:php8.1-fpm
     container_name: wordpress
     restart: always
     depends_on:
