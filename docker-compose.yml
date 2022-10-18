@@ -44,6 +44,7 @@ services:
       - db
     volumes:
       - wordpress:/var/www/html
+      - ./wordpress/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_NAME: ${MARIADB_DATABASE}
