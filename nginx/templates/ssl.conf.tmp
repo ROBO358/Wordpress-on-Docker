@@ -4,6 +4,8 @@ server {
     server_name ${NGINX_WP_HOST};
     charset utf-8;
 
+    server_tokens off;
+
     # アップ可能なサイズ上限
     client_max_body_size 1536m;
 

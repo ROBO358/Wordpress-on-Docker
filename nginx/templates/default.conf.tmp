@@ -12,6 +12,8 @@ server {
     listen [::]:80;
     server_name ${NGINX_WP_HOST};
 
+    server_tokens off;
+
     # certbotのアクセス先
     location ^~ /.well-known {
         root /var/www/html;
